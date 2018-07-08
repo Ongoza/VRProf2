@@ -1,4 +1,4 @@
-﻿Shader "Custom/timedVRPointer" {
+﻿Shader "Custom/timedReticle" {
   Properties {
     _Color  ("Color", Color) = ( 1, 1, 0, 1 )
 	_Angle  ("Angle", Range(0, 360)) = 180

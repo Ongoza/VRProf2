@@ -16,9 +16,11 @@ public class MyVideo2 : MonoBehaviour {
 //		string urlVideo = "C:/Users/del4600/AppData/LocalLow/Ongoza/VRprof/vrprof1_1.mp4";
 //		string urlAudio = "C:/Users/del4600/AppData/LocalLow/Ongoza/VRprof/vrprof1_1.mp3";
 		globalData.server.putDataString (false,"\"video2\":\"start player! 0\"");
-//		if (true) {
-			int index = globalData.getCurVideoName ();
-			string curIndex = index.ToString();
+        Debug.Log("start video2! 2");
+        //		if (true) {
+        int index = globalData.getCurVideoName ();
+        Debug.Log("start video2! index = "+index);
+        string curIndex = index.ToString();
 			string urlVideo = globalData.getVideo (curIndex);
 			string urlAudio = globalData.getAudio (curIndex);
 			CurDataVideo video = globalData.getVideoData (index);		 
@@ -91,15 +93,15 @@ public class MyVideo2 : MonoBehaviour {
 	void EndReached(UnityEngine.Video.VideoPlayer vp){
 		//		vp.playbackSpeed = vp.playbackSpeed / 10.0F;
 		Debug.Log("End reached!!!!!");
-		int next = globalData.getCurVideoName () + 1;
-		int max = globalData.getVideosCount ();
-		if (next < max){
-			globalData.setCurVideoName (next);
-			UnityEngine.SceneManagement.SceneManager.LoadScene ("Description");
-		}else{
-			globalData.setCurVideoName (0);
-			UnityEngine.SceneManagement.SceneManager.LoadScene ("Main");
-		}
+		//int next = globalData.getCurVideoName () + 1;
+		//int max = globalData.getVideosCount ();
+		//if (next < max){
+		//	globalData.setCurVideoName (next);
+		//	UnityEngine.SceneManagement.SceneManager.LoadScene ("Description");
+		//}else{
+		globalData.setCurVideoName (0);
+		UnityEngine.SceneManagement.SceneManager.LoadScene ("Main");
+		//}
 
 	}
 }

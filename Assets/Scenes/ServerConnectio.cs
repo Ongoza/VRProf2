@@ -10,6 +10,7 @@ using System.Net;
 public class ServerConnection {
 	
 	private string ServerUrl = globalData.getServerAddress();
+    private bool trWriteLogToServer = false;
 	private string ServerDataUrl = globalData.getDataServerAddress();
 	public bool ready = true;
 	int videoIndex = 0;
@@ -18,31 +19,42 @@ public class ServerConnection {
 	int downloadingProgressComplete=0;
 
 
-	public void putDataString(bool trData,string data){		
-		try {
-			string docs = "docs=[{\"uuid\":\""+globalData.getDeviceUUID()+"\",\"time\":\""+System.DateTime.UtcNow.ToString("yyyy/MM/dd/HH:mm")+"\","+ data + "}]";
-			string strDataEnd = "";
-			if (!trData){strDataEnd+="_test";}
-			string uriStr = ServerDataUrl +strDataEnd+"/_insert";
-			Debug.Log ("start Upload url"+uriStr);
-			WebClient client = new WebClient ();
-			client.Headers.Add ("Content-Type", "application/x-www-form-urlencoded");
-			byte[] byteDocs = Encoding.UTF8.GetBytes (docs);
-			client.UploadDataCompleted += new UploadDataCompletedEventHandler (UploadDataResult);
-			client.UploadDataAsync (new System.Uri (uriStr), "POST", byteDocs);
-			Debug.Log ("start Upload");				
-			} catch (System.Exception e) {	Debug.Log ("Connection error: " + e); }
+	public void putDataString(bool trData,string data){
+        if (trWriteLogToServer == true)
+        {
+            try
+            {
+                string docs = "docs=[{\"uuid\":\"" + globalData.getDeviceUUID() + "\",\"time\":\"" + System.DateTime.UtcNow.ToString("yyyy/MM/dd/HH:mm") + "\"," + data + "}]";
+                string strDataEnd = "";
+                if (!trData) { strDataEnd += "_test"; }
+                string uriStr = ServerDataUrl + strDataEnd + "/_insert";
+                Debug.Log("start Upload url " + uriStr);
+                WebClient client = new WebClient();
+                client.Headers.Add("Content-Type", "application/x-www-form-urlencoded");
+                byte[] byteDocs = Encoding.UTF8.GetBytes(docs);
+                client.UploadDataCompleted += new UploadDataCompletedEventHandler(UploadDataResult);
+                client.UploadDataAsync(new System.Uri(uriStr), "POST", byteDocs);
+                Debug.Log("start Uploaded");
+            }
+            catch (System.Exception e) { Debug.Log("Connection error: " + e); }
+        }
 	}
 
 	private void UploadDataResult(object sender, UploadDataCompletedEventArgs e){
-		try{
-			Debug.Log ("Upload result catch!!");
-			byte[] data = (byte[])e.Result;
-			string reply = System.Text.Encoding.UTF8.GetString (data);
-				Debug.Log ("!!!!!Upload result: " + reply);	
-		}catch (System.Exception ee){
-			Debug.Log ("!!!!!Upload error: "+ee);
-		}
+        if (trWriteLogToServer == true)
+        {
+            try
+            {
+                Debug.Log("Upload result catch!!");
+                byte[] data = (byte[])e.Result;
+                string reply = System.Text.Encoding.UTF8.GetString(data);
+                Debug.Log("!!!!!Upload result: " + reply);
+            }
+            catch (System.Exception ee)
+            {
+                Debug.Log("!!!!!Upload error: " + ee);
+            }
+        }
 	}
 
 
@@ -135,16 +147,18 @@ public class ServerConnection {
 					FileStream file = new FileStream (name, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 					MD5 md5 = new MD5CryptoServiceProvider (); byte[] retVal = md5.ComputeHash (file); file.Close ();
 					StringBuilder sb = new StringBuilder (); for (int i = 0; i < retVal.Length; i++) {sb.Append (retVal [i].ToString ("x2"));}
-					string md5_old = sb.ToString ();
-					Debug.Log ("shekFile 5 name=" + name + " oldmd5= " + md5_old + " newmd5= " + new_md5);
+					string md5_old = sb.ToString().ToLower();
+					Debug.Log ("chekFile: start for name=" + name + " oldmd5= " + md5_old + " newmd5= " + new_md5);
 					globalData.server.putDataString (false, "\"md5\":\"md5 " + name + "=" + md5_old + "=" + new_md5 + "\"");
-					if (md5_old.Equals (new_md5)) {	result = true;
+					if (md5_old.Equals (new_md5.ToLower())) {	result = true;
 						globalData.server.putDataString (false, "\"md5\":\"md5 ok " + name + "=" + md5_old + "=" + new_md5 + "\"");
-						Debug.Log ("shekFile !!!!5 equal name=" + name + " = " + md5_old + " = " + new_md5);	
-					} else {File.Delete (name);}
+						Debug.Log ("chekFile: files md5sums are equals name=" + name + " = " + md5_old + " = " + new_md5);	
+					} else {
+                        Debug.Log("chekFile: files md5sums are not equals name=" + name + " = " + md5_old + " = " + new_md5);
+                        File.Delete (name);}
 				} catch (IOException e) {
 					globalData.server.putDataString (false, "\"md5\":\"error open file!\"");
-					Debug.Log ("shekFile error open file check= name" + name);
+					Debug.Log ("shekFile: error open file check= name" + name);
 				}				
 			}
 		}
