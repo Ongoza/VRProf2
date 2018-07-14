@@ -97,7 +97,7 @@ public class ColorTest : MonoBehaviour
         //newCanvas.transform.SetParent(Camera.main.transform, true);
         NewCanvasRect.localPosition = new Vector3(-8, 0, -30);
         NewCanvasRect.sizeDelta = new Vector2(1400, 1000);
-        NewCanvasRect.localScale = new Vector3(0.1f, 0.1f, 1f);
+        NewCanvasRect.localScale = new Vector3(0.07f, 0.07f, 1f);
         GameObject panel = new GameObject("ResultPanel");
         panel.AddComponent<CanvasRenderer>();
         Image img = panel.AddComponent<Image>();
@@ -185,7 +185,7 @@ public class ColorTest : MonoBehaviour
         newCanvas.AddComponent<GraphicRaycaster>();
         RectTransform NewCanvasRect = newCanvas.GetComponent<RectTransform>();
         NewCanvasRect.sizeDelta = new Vector2(1700, 100);
-        NewCanvasRect.localScale = new Vector3(0.1f, 0.1f, 1f);
+        NewCanvasRect.localScale = new Vector3(0.07f, 0.07f, 1f);
         NewCanvasRect.localPosition = new Vector3(-7.3f, 1f, -18);
         GameObject panel = new GameObject("startPanel");
         panel.AddComponent<CanvasRenderer>();
@@ -281,7 +281,7 @@ public class ColorTest : MonoBehaviour
         NewCanvasRect.sizeDelta = new Vector2(120, 70);
         NewCanvasRect.transform.rotation = Quaternion.AngleAxis(-180, Vector3.up);
         NewCanvasRect.position = new Vector3(-7.5f, -5, -14);
-        NewCanvasRect.transform.localScale = new Vector3(0.03f, 0.03f, 1);
+        NewCanvasRect.transform.localScale = new Vector3(0.025f, 0.025f, 1);
         for (int i = 0; i < 8; i++)
         {
             listCards[i] = createCard2(i, NewCanvasRect, new Color(arrColor[i][0] / 255f, arrColor[i][1] / 255f, arrColor[i][2] / 255f, 1f));
