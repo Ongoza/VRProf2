@@ -1,12 +1,14 @@
 ﻿// bugs
 // android stop without network connections !!!!!
 
+
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.IO;
+using UnityEngine.Networking;
 
 public class Main : MonoBehaviour
 {
@@ -28,22 +30,26 @@ public class Main : MonoBehaviour
     {
         timedPointer = camTimedPointer.GetComponent<Renderer>().material;
         showOevrlayInfo("Starting app!");
-        Color color = new Color(0.2f, 0.2f, 0.2f, 1);
-        //StartCoroutine(fadeScene(1.0f, true, color, "Main"));
-        startMain();
-        //showTutorialContent("btnModel");
+        StartCoroutine(fadeScene(0.5f, true, new Color(0.2f, 0.2f, 0.2f, 1), "Main"));
+        int index = globalData.getCurVideoName();
+        if (index == 0)
+        {
+            startMain();
+        }
+        else
+        {
+            showTutorialContent("btnModel");
+        }
         //showProgressBar();
-
-
     }
 
     IEnumerator fadeScene(float duration, bool startNewScene, Color color, string sceneName)
     {
         camFade.GetComponent<Renderer>().enabled = true;
-        Debug.Log("Start fade scene " + color);
+        //Debug.Log("Start fade scene " + color);
         float startTransparent = 0f;
         float endTransparent = 1f;
-        float smoothness = 0.005f;
+        float smoothness = 0.05f;
         float progress = 0;
         float increment = smoothness / duration; //The amount of change to apply.
         if (startNewScene == true)
@@ -57,9 +63,10 @@ public class Main : MonoBehaviour
         while (progress < 1)
         {
             progress += increment;
+            //Debug.Log(progress);
             camFade.GetComponent<Renderer>().materials[0].color = Color.Lerp(colorStart, colorEnd, progress);
             yield return new WaitForSeconds(smoothness);
-        };
+        }
         yield return null;
         if (startNewScene == true)
         {
@@ -67,36 +74,10 @@ public class Main : MonoBehaviour
         }
         else
         {
-            Debug.Log("Start scene " + sceneName);
+            //Debug.Log("Start scene " + sceneName);
             UnityEngine.SceneManagement.SceneManager.LoadScene(sceneName);
         }
     }
-
-    IEnumerator FadeCanvas(float duration, float transparent, GameObject fadeCanvas, GameObject fadeObj, Color colorStart, string scene)
-    {
-        float smoothness = 0.005f; float progress = 0; float increment = smoothness / duration; //The amount of change to apply.
-        float newTransparent = 0; if (transparent == 0) { newTransparent = 1; }
-        Color colorEnd = new Color(colorStart.r, colorStart.g, colorStart.b, newTransparent);
-        while (progress < 1)
-        {
-            progress += increment;
-            fadeObj.GetComponent<Image>().color = Color.Lerp(colorStart, colorEnd, progress);
-            yield return new WaitForSeconds(smoothness);
-        };
-        yield return null;
-        if (transparent == 1)
-        {
-            Destroy(fadeObj);
-            Destroy(fadeCanvas);
-            // ScreenCapture.CaptureScreenshot ("Screenshot.png");
-        }
-        else
-        {
-            Debug.Log("Start scene" + scene);
-            UnityEngine.SceneManagement.SceneManager.LoadScene(scene);
-        }
-    }
-
 
 
     void startMain()
@@ -104,8 +85,8 @@ public class Main : MonoBehaviour
         //Debug.Log("Start color test tr=" + globalData.trColorTest1);
         isTimer = false;
         workTime = defaultTime;
-        //checkDevice();
-        Debug.Log("Hello from Main");
+        checkDevice(); // +NetworkManager.networkAddress
+        //Debug.Log("Hello from Main");
         addOevrlayInfo(": Start Main");
         //		List<int> selNames = new List<int>(){1,0,3,4,5,6,7};
         //		globalData.addcTest(selNames);
@@ -123,7 +104,6 @@ public class Main : MonoBehaviour
 
     private void checkDevice()
     {
-
         string serverTestString = "";
         addOevrlayInfo("DeviceInfo: Start");
         try
@@ -139,13 +119,13 @@ public class Main : MonoBehaviour
             serverTestString += "zone:error";
         }
         addOevrlayInfo(": Start Device 2");
-        Debug.Log("Start device");
+        //Debug.Log("Start device");
         try
         {
-            serverTestString += ",\"ip\":\"" + Network.player.ipAddress + "\"" +
-            ",\"model\":\"" + SystemInfo.deviceModel + "\"" +
-                //serverTestString+=","type":""+SystemInfo.deviceType+"\"";
-                ",\"os\":\"" + SystemInfo.operatingSystem + "\"";
+            serverTestString += //",\"ip\":\"" + NetworkIdentity.connectionToClient() + "\"" +
+             ",\"model\":\"" + SystemInfo.deviceModel + "\"" +
+             ",\"type\":\"" + SystemInfo.deviceType + "\"" +
+             ",\"os\":\"" + SystemInfo.operatingSystem + "\"";
         }
         catch (System.Exception e)
         {
@@ -162,7 +142,7 @@ public class Main : MonoBehaviour
 
     private void createMovieButton(string name, float x, float y, Texture2D tex, RectTransform root, bool active)
     {
-        Debug.Log("movie btn " + name);
+        //Debug.Log("movie btn " + name);
         GameObject button = new GameObject(name);
         RawImage img = button.AddComponent<RawImage>();
         img.texture = tex;
@@ -192,9 +172,10 @@ public class Main : MonoBehaviour
             entryExitGaze.callback.AddListener((eventData) => { onExitTimed(); });
             be.triggers.Add(entryExitGaze);
         }
-        else {
+        else
+        {
             //Debug.Log(name);           
-            Material myNewMaterial = new Material(Shader.Find("GUI/Text Shader"));            
+            Material myNewMaterial = new Material(Shader.Find("GUI/Text Shader"));
             GameObject txtObj = CreateText(br, 0, 0, 100, 20, "Available soon", 14, 0, TextAnchor.MiddleCenter);
             txtObj.GetComponent<Text>().material = myNewMaterial;
         }
@@ -345,7 +326,7 @@ public class Main : MonoBehaviour
         onExitTimed();
 
         Color color = new Color(0.2f, 0.2f, 0.2f, 0f);
-        StartCoroutine(fadeScene(1.0f, false, color, "colorTest"));
+        StartCoroutine(fadeScene(0.5f, false, color, "colorTest"));
         //startFade(0, "colorTest");
     }
     public void HandleClickStartVideo()
@@ -381,7 +362,7 @@ public class Main : MonoBehaviour
         {
             case "test":
                 Color color = new Color(0.2f, 0.2f, 0.2f, 0f);
-                StartCoroutine(fadeScene(1.0f, false, color, "colorTest"));
+                StartCoroutine(fadeScene(0.5f, false, color, "colorTest"));
                 break;
             case "btnModel":
                 Debug.Log("clickSelectEvent 2 =" + name + "=");
@@ -394,7 +375,7 @@ public class Main : MonoBehaviour
                 if (progressVideo != null)
                 {
                     Transform trans = progressVideo.GetComponent<Transform>();
-                    Debug.Log(trans.localPosition); // +"_"+ progressVideo.transform.parent.name
+                    //Debug.Log(trans.localPosition); // +"_"+ progressVideo.transform.parent.name
                     trans.parent = null;
                     trans.localPosition = new Vector3(0, -2.5f, 0);
                     trans.localRotation = Quaternion.Euler(0, 0, 0);
@@ -424,13 +405,11 @@ public class Main : MonoBehaviour
     void tryStartVideo()
     {
         //globalData.setTrReadyVideo(true);
-
-        Debug.Log("tryStartVideo start");
+        //Debug.Log("tryStartVideo start");
         if (globalData.getTrReadyVideo())
         {
-            Debug.Log("tryStartVideo start fade");
-            StartCoroutine(fadeScene(1.0f, false, new Color(0.2f, 0.2f, 0.2f, 0), "Video2"));
-
+            //Debug.Log("tryStartVideo start fade");
+            StartCoroutine(fadeScene(0.2f, false, new Color(0.2f, 0.2f, 0.2f, 0), "Video2"));
             //startFade(0, "Description");
         }
         else
@@ -441,16 +420,16 @@ public class Main : MonoBehaviour
             {
                 addOevrlayInfo("Videos are not downloaded. Please wait.");
                 GameObject progressVideo = GameObject.Find("CnvsProgressVideo");
-                if (progressVideo != null) { 
+                if (progressVideo != null)
+                {
                     Transform trans = progressVideo.GetComponent<Transform>();
-                    Debug.Log(trans.localPosition); // +"_"+ progressVideo.transform.parent.name
+                    //Debug.Log(trans.localPosition); // +"_"+ progressVideo.transform.parent.name
                     if (trans.localPosition.z < 1)
                     {
                         trans.SetParent(Camera.main.transform);
                         trans.localPosition = new Vector3(0, -1, 3);
                         trans.localRotation = Quaternion.Euler(0, 180, 0);
                     }
-                
                     //trans.localPosition = new Vector3(0,0,0);
                     //showProgressBar ();		
                 }
@@ -460,7 +439,7 @@ public class Main : MonoBehaviour
 
     void showProgressBar()
     {
-        Debug.Log("start progress bar");
+        //Debug.Log("start progress bar");
         addOevrlayInfo("start progress bar");
         if (!globalData.getTrReadyVideo())
         {
@@ -470,7 +449,7 @@ public class Main : MonoBehaviour
             c.renderMode = RenderMode.WorldSpace;
             canvasProgressBar.AddComponent<CanvasScaler>();
 
-            RectTransform NewCanvasRect = canvasProgressBar.GetComponent<RectTransform>();            
+            RectTransform NewCanvasRect = canvasProgressBar.GetComponent<RectTransform>();
             NewCanvasRect.sizeDelta = new Vector2(20, 5);
             NewCanvasRect.localScale = new Vector3(0.1f, 0.1f, 1f);
             NewCanvasRect.localPosition = new Vector3(0, -2.5f, 0);
@@ -503,8 +482,8 @@ public class Main : MonoBehaviour
             progressBar.sizeDelta = new Vector2(0, 10);
             progressBar.rotation = Quaternion.AngleAxis(-180, Vector3.up);
             progressBar.localScale = new Vector3(1, 1, 1);
-            progressBar.localPosition = new Vector3(90, -8, 0);            
-            string txt = "Downloading video: "+ globalData.getDownloadingProgress().ToString()+"%";            
+            progressBar.localPosition = new Vector3(90, -8, 0);
+            string txt = "Downloading video: " + globalData.getDownloadingProgress().ToString() + "%";
             GameObject txtObj = CreateText(panelTransform, -40, 20, 260, 30, txt, 12, 0, TextAnchor.LowerLeft);
             Text progressBarText = txtObj.GetComponent<Text>();
             RectTransform txtObjTransform = panel.GetComponent<RectTransform>();
@@ -527,7 +506,7 @@ public class Main : MonoBehaviour
         {
             progress = globalData.getTrReadyVideo();
             progressBarText.text = "Downloading video: " + globalData.getDownloadingProgress() + "%";
-            Debug.Log ("main progress: ="+ progressBarText.text);
+            //Debug.Log ("main progress: ="+ progressBarText.text);
             progressBar.sizeDelta = new Vector2(globalData.getDownloadingProgress() * 1.8f, 10);
             yield return new WaitForSeconds(2);
         }
@@ -549,13 +528,13 @@ public class Main : MonoBehaviour
         bool readyJson = false;
         try
         {
-            Debug.Log("json: start");
+            //Debug.Log("json: start");
             addOevrlayInfo("Get json start");
             CurDataTutorial loadedData = JsonUtility.FromJson<CurDataTutorial>(jStr);
-            Debug.Log("json: 0" + jStr + "=" + loadedData.name);
+            //Debug.Log("json: 0" + jStr + "=" + loadedData.name);
             globalData.addTutorial(loadedData);
             globalData.setCurrentTutorial(loadedData.name);
-            Debug.Log("json: 001");
+            //Debug.Log("json: 001");
             readyJson = true;
             addOevrlayInfo("json ready");
         }
@@ -567,14 +546,14 @@ public class Main : MonoBehaviour
         }
         if (readyJson)
         {
-            Debug.Log("json 1: ");
+            //Debug.Log("json 1: ");
             //Debug.Log ("json 1: " + loadedData.parts[0].name+" part2 "+loadedData.parts[0].answers[1].name+" part3 "+loadedData.parts[0].videos[0].fileName);						
             addOevrlayInfo("Establish connection to server.");
-            Debug.Log("json 2:");
+            //Debug.Log("json 2:");
             globalData.server.getAllVideo("tut1");
-            Debug.Log("json 3:");
+            //Debug.Log("json 3:");
             showProgressBar();
-            Debug.Log("json: 4");
+            //Debug.Log("json: 4");
             addOevrlayInfo("Establish connection to server. end");
         }
     }
@@ -591,14 +570,14 @@ public class Main : MonoBehaviour
         }
         else
         {
-            Debug.Log("net ansver: " + www.responseCode + " size=" + www.downloadedBytes + " progress=" + www.downloadProgress);
+            //Debug.Log("net ansver: " + www.responseCode + " size=" + www.downloadedBytes + " progress=" + www.downloadProgress);
             jsonToObj(www.downloadHandler.text);
             addOevrlayInfo("connection to server ok. Responce code: " + www.responseCode);
         }
     }
     private void showTutorialsMenu(GameObject rootMenu)
     {
-        Debug.Log("movie select");
+        //Debug.Log("movie select");
         addOevrlayInfo("Show movies");
         GameObject newCanvas = new GameObject("CnvsMovie");
         newCanvas.transform.SetParent(rootMenu.transform);
@@ -646,7 +625,7 @@ public class Main : MonoBehaviour
 
     private void showTutorialContent(string name)
     {
-        Debug.Log("Show content for " + name);
+        // Debug.Log("Show content for " + name);
         rootMenu = new GameObject("rootMenu");
         GameObject newCanvas = new GameObject("CnvsTutC_" + name);
         newCanvas.transform.SetParent(rootMenu.transform);
@@ -709,19 +688,19 @@ public class Main : MonoBehaviour
         //Material mat0 = new Material (Shader.Find(" Diffuse"));
         CreateText(rt, 0, 0, 500, 70, "How it be a model", 50, 1, TextAnchor.MiddleCenter);
         Texture2D tex1 = (Texture2D)Resources.Load("Textures/part_1");
-        createItemButton("Part_1", 80, 0, tex1, mainTransform,  true, "Part 1\nThe first meeting");
+        createItemButton("Part_1", 80, 0, tex1, mainTransform, true, "Part 1\nThe first meeting");
         Texture2D tex2 = (Texture2D)Resources.Load("Textures/Part_2");
-        createItemButton("Part_2", 0, 0, tex2, mainTransform,  true, "Part 2\nThe photo session");
+        createItemButton("Part_2", 0, 0, tex2, mainTransform, true, "Part 2\nThe photo session");
         Texture2D tex3 = (Texture2D)Resources.Load("Textures/part_1");
-        createItemButton("Part_3", -80, 0, tex3, mainTransform,  true, "Part 3\nInformation\nabout a carrier");
+        createItemButton("Part_3", -80, 0, tex3, mainTransform, true, "Part 3\nInformation\nabout a carrier");
 
     }
     private void createItemButton(string name, float x, float y, Texture2D tex, RectTransform root, bool active, string Description)
     {
-        Debug.Log("movie btn name=" + name);
+        //Debug.Log("movie btn name=" + name);
         GameObject panelMain = new GameObject("Panel_" + name);
         panelMain.AddComponent<CanvasRenderer>();
-        Image i = panelMain.AddComponent<Image>();
+        panelMain.AddComponent<Image>();
         //i.color = new Vector4(1, 1, 1, 0.7f);
         RectTransform mainTransform = panelMain.GetComponent<RectTransform>();
         mainTransform.SetParent(root, true);
