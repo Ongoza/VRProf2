@@ -25,7 +25,8 @@ public class MyVideo2 : MonoBehaviour {
     private Image imgTimedGaze;
 	// Use this for initialization
 	void Start () {
-		showOevrlayInfo("Starting app!");
+        Application.logMessageReceived += Application_logMessageReceived;
+        showOevrlayInfo("Starting app!");
 		Debug.Log ("start video!");
 		timedPointer = camTimedPointer.GetComponent<Renderer>().material;
 		trAudio = false;
@@ -56,29 +57,80 @@ public class MyVideo2 : MonoBehaviour {
 						StartCoroutine(LoadFile (urlAudio));
 					}catch (System.Exception e)
 					{
-						Debug.Log ("can not start play audio! error " + e);
-						addOevrlayInfo("start audio error! can not start audio");
-					}		
-					player.url = urlVideo;
-					addOevrlayInfo("start local video open");
-					player.prepareCompleted += Prepared;
-					player.loopPointReached += EndReached;
-					player.Prepare ();
-				}
+						Debug.Log ("can not start play audio error: " + e.Message);
+                        if (show_debug == false)
+                        {
+                            show_debug = true;
+                            showOevrlayInfo("Starting debug mode");
+                        }
+                        addOevrlayInfo("can not play audio error: "+e.Message);
+					}
+                    try {
+                        Debug.Log("start local video open");
+                        player.errorReceived += VideoPlayer_errorReceived;//THIS LINE!!!
+                        player.url = urlVideo;
+                        player.prepareCompleted += Prepared;
+                        Debug.Log("start local video open 2");
+                        player.loopPointReached += EndReached;
+                        Debug.Log("start local video open 3");
+                        player.Prepare ();
+                    }
+                    catch (System.Exception e)
+                    {
+                        Debug.Log("start video player error: " + e.Message);
+                        if (show_debug == false)
+                        {
+                            show_debug = true;
+                            showOevrlayInfo("Starting debug mode");
+                        }
+                        addOevrlayInfo("start video player error: " + e.Message);
+                    }
+                }
 			} else {
-				Debug.Log ("error start play! " + urlVideo);
-				addOevrlayInfo("error start video video="+urlVideo);
+				Debug.Log ("error start play! " + urlVideo);                
+                addOevrlayInfo("error start video video="+urlVideo);
 				globalData.server.putDataString (false,"\"video2\":\"start player! error urlVideo\"");
 			}
 		}
 		catch (System.Exception e)
 		{
-			Debug.Log ("can not start play! error " + e);
-			addOevrlayInfo("start video error! can not start video");
+			Debug.Log ("can not start play error: " + e.Message);
+            if (show_debug == false)
+            {
+                show_debug = true;
+                showOevrlayInfo("Starting debug mode");
+            }
+            addOevrlayInfo("start video error: " + e.Message);
 		}		
 	}
-	
-	private void showStartMsg(){
+
+    private void Application_logMessageReceived(string condition, string stackTrace, LogType type)
+    {
+        if(type == LogType.Error) { 
+            Debug.Log("Catch Error: "+condition +". Stack:"+stackTrace);
+            if (show_debug == false)
+            {
+                show_debug = true;
+                showOevrlayInfo("Starting debug mode");
+            }
+            addOevrlayInfo("Catch Error: " + condition);
+            //addOevrlayInfo("Catch 2: " + stackTrace);
+        }
+    }
+
+    private void VideoPlayer_errorReceived(VideoPlayer source, string message)
+    {
+        Debug.Log("video player error: " + message);
+        if (show_debug == false)
+        {
+            show_debug = true;
+            showOevrlayInfo("Starting debug mode");
+        }
+        addOevrlayInfo("video player error: " + message);
+        player.errorReceived -= VideoPlayer_errorReceived;
+    }
+
+    private void showStartMsg(){
 		GameObject newCanvas = new GameObject("MsgCanvas");
         Canvas c = newCanvas.AddComponent<Canvas>();
         c.renderMode = RenderMode.WorldSpace;
@@ -316,28 +368,30 @@ private GameObject CreateText(Transform parent, float x, float y, float w, float
 
 	void Prepared(UnityEngine.Video.VideoPlayer vPlayer) {
 		try {		
-			Debug.Log("start video prepare");
-			addOevrlayInfo("start video prepare");
 			//globalData.server.putDataString (false,"\"video2\":\"prepared video! 0\"");
 			Material mat = RenderSettings.skybox;
 			if (rotate != 0) {
-				Debug.Log ("Rotate camera video "+rotate);
 				mat.SetFloat ("_Rotation", rotate);}
-			//globalData.server.putDataString (false,"\"video2\":\"prepared video!1\"");			
-			player.Play();
-			addOevrlayInfo("video started");
+            //globalData.server.putDataString (false,"\"video2\":\"prepared video!1\"");			
+            Debug.Log("check if video ready: " + player.isPrepared);
+			player.Play();			
 			if(trAudio==true){			
-				audioSource.Play();
-				addOevrlayInfo("audio started");
-			}else{
-				addOevrlayInfo("audio did not start");
-			}
+				audioSource.Play();				
+			}else{				
+                Debug.Log("audio did not start");
+                addOevrlayInfo("audio did not start");
+            }
 		} catch(System.Exception e){
-			addOevrlayInfo("error prepered local files");
-			Debug.LogError ("error prepered local files "+e);
-			//globalData.setCurVideoName (1);
-			//UnityEngine.SceneManagement.SceneManager.LoadScene ("Main");
-		}
+            Debug.LogError("error prepered local files: " + e.Message);            
+            if (show_debug == false)
+            {
+                show_debug = true;
+                showOevrlayInfo("Starting debug mode");
+            }
+            addOevrlayInfo("error prepered local files: " + e.Message);
+            //globalData.setCurVideoName (1);
+            //UnityEngine.SceneManagement.SceneManager.LoadScene ("Main");
+        }
 	}
 
 	void EndReached(UnityEngine.Video.VideoPlayer vp){

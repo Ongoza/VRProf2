@@ -96,7 +96,14 @@ public class Main : MonoBehaviour
         //}else {	movieSelect();}			
         //string jStr = globalData.getLocalTutorialString ("tut1.json");
         //Debug.Log ("jStr="+jStr);
-        StartCoroutine(GetRequestJson("vprof1_0.json"));
+        try
+        {
+            StartCoroutine(GetRequestJson("vprof"));
+        }
+        catch (System.Exception e)
+        {
+            Debug.Log("Error download  json "+e.Message);
+        }
         //jsonToObj(jStr);
         addOevrlayInfo(": Start Network");
         //globalData.server.putDataString(false, "\"deviceZone\":\"error\"");
@@ -561,20 +568,36 @@ public class Main : MonoBehaviour
     IEnumerator GetRequestJson(string name)
     {
         string urlServer = globalData.getServerAddress();
+        string serverAnswer = "";
         UnityEngine.Networking.UnityWebRequest www = UnityEngine.Networking.UnityWebRequest.Get(urlServer + name);
         yield return www.SendWebRequest();
         if (www.isNetworkError || www.isHttpError)
         {
-            Debug.Log("network error!!! " + www.error + " responseCode:" + www.responseCode + " request: " + www.url);
-            addOevrlayInfo("Error connection to server. Error code: " + www.responseCode);
+            Debug.Log("network error!!! " + www.error + " responseCode:" + www.responseCode + " request: " + www.url);            
         }
         else
         {
-            //Debug.Log("net ansver: " + www.responseCode + " size=" + www.downloadedBytes + " progress=" + www.downloadProgress);
-            jsonToObj(www.downloadHandler.text);
-            addOevrlayInfo("connection to server ok. Responce code: " + www.responseCode);
+            serverAnswer = www.downloadHandler.text;
+            Debug.Log("net ansver: " + www.responseCode + " size=" + www.downloadedBytes + " progress=" + www.downloadProgress + "Text="+ www.downloadHandler.text);
+        }
+        if (serverAnswer != "")
+        {
+            UnityEngine.Networking.UnityWebRequest www2 = UnityEngine.Networking.UnityWebRequest.Get(urlServer + serverAnswer);
+            yield return www2.SendWebRequest();
+            if (www2.isNetworkError || www2.isHttpError)
+            {
+                Debug.Log("network error!!! " + www2.error + " responseCode:" + www2.responseCode + " request: " + www2.url);                
+            }
+            else
+            {                
+                Debug.Log("net ansver: " + www2.responseCode + " size=" + www2.downloadedBytes + " progress=" + www2.downloadProgress + "Text=" + www2.downloadHandler.text);
+                jsonToObj(www2.downloadHandler.text);
+                addOevrlayInfo("connection to server ok. Responce code: " + www2.responseCode);
+
+            }
         }
     }
+
     private void showTutorialsMenu(GameObject rootMenu)
     {
         //Debug.Log("movie select");
